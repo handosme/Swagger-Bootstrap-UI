@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.xiaoymin</groupId>
+    <groupId>org.ihansen.sbu</groupId>
     <artifactId>swagger-bootstrap-ui</artifactId>
-    <version>1.6</version>
+    <version>1.6.1-SNAPSHOT</version>
     <name>swagger-bootstrap-ui</name>
     <description>Swagger-Bootstrap-UI is the front of the UI Swagger implementation, using jQuery+bootstrap implementation, the purpose is to replace the default UI Swagger implementation of the Swagger-UI, so that the document is more friendly...</description>
-    <url>https://git.oschina.net/xiaoym/swagger-bootstrap-ui</url>
+    <url>https://github.com/handosme/Swagger-Bootstrap-UI</url>
     <developers>
         <developer>
             <id>xiaoym</id>
@@ -19,6 +19,11 @@
                 <role>Java Development Engineer</role>
             </roles>
             <timezone>2017-4-17 18:05:10</timezone>
+        </developer>
+        <developer>
+            <name>handosme</name>
+            <email>wus@mail.ihansen.org</email>
+            <organization>ihansen.org</organization>
         </developer>
     </developers>
     <properties>
@@ -133,19 +138,19 @@
                         </executions>
                     </plugin>
                     <!-- GPG -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
+                    <!--<plugin>-->
+                        <!--<groupId>org.apache.maven.plugins</groupId>-->
+                        <!--<artifactId>maven-gpg-plugin</artifactId>-->
+                        <!--<version>1.6</version>-->
+                        <!--<executions>-->
+                            <!--<execution>-->
+                                <!--<phase>verify</phase>-->
+                                <!--<goals>-->
+                                    <!--<goal>sign</goal>-->
+                                <!--</goals>-->
+                            <!--</execution>-->
+                        <!--</executions>-->
+                    <!--</plugin>-->
                 </plugins>
             </build>
             <distributionManagement>
