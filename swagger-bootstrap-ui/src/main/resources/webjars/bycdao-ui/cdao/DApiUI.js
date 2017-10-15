@@ -1,14 +1,34 @@
 /**
  * Created by xiaoym on 2017/4/17.
+ * change list:
+ * 1.支持接口锚点定位;
+ * 2.json参数名驼峰转下划线格式;
+ * 3.支持左右布局的宽度;
+ * 4.支持传入接口分组group;
+ * 5.支持返回结构体解析为表格方式呈现
  */
 
 (function ($) {
     //初始化类
-    var DApiUI={};
+    var DApiUI={
+        dragging:false,
+        group:"default",            //接口分组
+        filedFormat:"default"       //字段格式，现在支持驼峰、下划线
+    };
 
     DApiUI.init=function () {
+        //.分组信息
+        var group = DApiUI.getUrlParam("group");
+        if (group != null && group != undefined) {
+            DApiUI.group = group;
+        }
+        //.json字段格式
+        var filedFormat = DApiUI.getUrlParam("ff");
+        if (filedFormat != null && filedFormat != undefined) {
+            DApiUI.filedFormat = filedFormat;
+        }
         $.ajax({
-            url:"v2/api-docs",
+            url:"/v2/api-docs?group="+DApiUI.group,
             //url:"menu1.json",
             dataType:"json",
             type:"get",
@@ -21,10 +41,65 @@
                 DApiUI.createDescription(menu);
                 DApiUI.initTreeMenu(menu);
                 DApiUI.eachPath(menu);
-
+                DApiUI.locationMenu();
             }
         })
     }
+
+    DApiUI.filedFormatFun = function (str) {
+        if(DApiUI.filedFormat=="_"){
+            return str.replace(/([A-Z])/g,"_$1").toLowerCase();
+        }
+        return str;
+    }
+
+    /**
+     * todowus:返回节点解析
+     */
+    $(".js-bycdao-dragging").bind('mousedown',function(){
+            DApiUI.dragging   = true;
+        }
+    );
+    document.onmousemove = function(e){
+        if (DApiUI.dragging) {
+            $('.js-bycdao-dragging').css('left',e.pageX);
+            $('.js-bycdao-left').css('width',e.pageX);
+            $('.js-bycdao-main').css('margin-left',e.pageX);
+        }
+    };
+    $(document).mouseup(function(e) {
+        DApiUI.dragging = false;
+    });
+
+    /**
+     * 从url中获取参数
+     * @param name
+     * @returns {null}
+     */
+    DApiUI.getUrlParam = function (name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+        var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+        if (r != null) return unescape(r[2]); return null; //返回参数值
+    }
+
+    /**
+     * 根据锚点展开菜单
+     */
+    DApiUI.locationMenu = function () {
+        var anchor = location.hash;
+        if(anchor=="" || anchor==undefined){
+            return;
+        }
+        anchor = anchor.replace("/","");
+        DApiUI.log(anchor);
+        //.todowus 实现方式需要优化
+        setTimeout(function () {
+            $(anchor).parent().siblings('a').click();
+            $(anchor).click();
+            var topOffset = $('.menuLi.active').offset().top-200;
+            $('.js-bycdao-left').animate({scrollTop: topOffset}, 300);
+        },1000);
+    };
 
 
 
@@ -150,6 +225,7 @@
         DApiUI.getMenu().append(dli);
         var methodApis=DApiUI.eachPath(menu);
 
+        menu.tags.sort(DApiUI.sortedTags);
         $.each(menu.tags,function (i, tag) {
             var tagInfo=new TagInfo(tag.name,tag.description);
             //查找childrens
@@ -171,7 +247,7 @@
                 //循环树
                 var ul=$('<ul class="submenu"></ul>')
                 $.each(tagInfo.childrens,function (i, children) {
-                    var childrenLi=$('<li class="menuLi" ><div class="mhed"><div>'+children.methodType.toUpperCase()+'-<code>'+children.url+'</code></div><div>'+children.summary+'</div></div></li>');
+                    var childrenLi=$('<li class="menuLi" id="'+children.tag+'_'+children.operationId+'"><div class="mhed"><div>'+children.methodType.toUpperCase()+'-<code>'+children.url+'</code></div><div>'+children.summary+'</div></div></li>');
                     //console.log(children)
                     //var childrenA=$('<a href="javascript:void(0)"><i class="icon-double-angle-right"></i><div  ><h5><span class="method">['+children.methodType+']</span></h5></div>'+children.summary+'('+children.url+')</a>');
                     //childrenLi.append(childrenA);
@@ -186,6 +262,17 @@
         DApiUI.initLiClick();
     }
 
+    DApiUI.sortedTags = function (tag1,tag2) {
+        var name1 =  tag1.name;
+        var name2 =  tag2.name;
+        if(name1>name2){
+            return 1;
+        } else if (name1==name2){
+            return 0;
+        } else {
+            return -1;
+        }
+    }
 
     DApiUI.eachPath=function (menu) {
         var paths=menu.paths;
@@ -203,7 +290,13 @@
                 apiInfo.url=key;
                 methodApis.push(apiInfo);
             }
-
+            if(obj.hasOwnProperty("head")){
+                //get方式
+                var apiInfo=new ApiInfo(obj["head"]);
+                apiInfo.methodType="head";
+                apiInfo.url=key;
+                methodApis.push(apiInfo);
+            }
             if(obj.hasOwnProperty("post")){
                 //post 方式
                 var apiInfo=new ApiInfo(obj["post"]);
@@ -218,10 +311,31 @@
                 apiInfo.url=key;
                 methodApis.push(apiInfo);
             }
+            if(obj.hasOwnProperty("patch")){
+                //delete
+                var apiInfo=new ApiInfo(obj["patch"]);
+                apiInfo.methodType="patch";
+                apiInfo.url=key;
+                methodApis.push(apiInfo);
+            }
             if(obj.hasOwnProperty("delete")){
                 //delete
                 var apiInfo=new ApiInfo(obj["delete"]);
                 apiInfo.methodType="delete";
+                apiInfo.url=key;
+                methodApis.push(apiInfo);
+            }
+            if(obj.hasOwnProperty("options")){
+                //delete
+                var apiInfo=new ApiInfo(obj["options"]);
+                apiInfo.methodType="options";
+                apiInfo.url=key;
+                methodApis.push(apiInfo);
+            }
+            if(obj.hasOwnProperty("trace")){
+                //delete
+                var apiInfo=new ApiInfo(obj["trace"]);
+                apiInfo.methodType="trace";
                 apiInfo.url=key;
                 methodApis.push(apiInfo);
             }
@@ -251,6 +365,9 @@
             that.addClass("active");
             DApiUI.createApiInfoTable(data);
             DApiUI.createDebugTab(data);
+            if(that.attr('id')!=null && that.attr('id')!=undefined){
+                location.hash="/"+that.attr('id');
+            }
         })
     }
 
@@ -303,7 +420,7 @@
         DApiUI.log("创建调试tab")
         //方法、请求类型、发送按钮
         var div=$('<div style="width: 100%;margin: 0px auto;margin-top: 20px;"></div>');
-        var headdiv1=$('<div class="input-group m-bot15"><span class="input-group-btn"><button class="btn btn-default btn-info" type="button">'+DApiUI.getStringValue(apiInfo.methodType)+'</button></span><input type="text" id="txtreqUrl" class="form-control" value="'+DApiUI.getStringValue(apiInfo.url)+'"/><span class="input-group-btn"><button id="btnRequest" class="btn btn-default btn-primary" type="button"> 发 送 </button></span></div>');
+        var headdiv1=$('<div class="input-group m-bot15"><span class="input-group-btn"><button class="btn btn-default btn-info" type="button">'+DApiUI.getStringValue(apiInfo.methodType)+'</button></span><input type="text" id="txtreqUrl" class="form-control" value="'+DApiUI.getStringValue(apiInfo.url)+'"/><span class="input-group-btn"><button id="btnRequest" class="btn btn-default btn-primary" type="button">发送</button></span></div>');
         div.append(headdiv1);
 
 
@@ -316,11 +433,11 @@
         //判断是否有请求参数
         if(typeof (apiInfo.parameters)!='undefined'&&apiInfo.parameters!=null){
             var table=$('<table class="table table-hover table-bordered table-text-center"></table>')
-            var thead=$('<thead><tr><th></th><th>参数名称</th><th>参数值</th><th>操作</th></tr></thead>');
+            var thead=$('<thead><tr><th></th><th>参数名称</th><th>参数值</th><th>说明</th><th>操作</th></tr></thead>');
             table.append(thead);
             var tbody=$('<tbody id="paramBody"></tbody>');
             $.each(apiInfo.parameters,function (i, param) {
-                var tr=$('<tr></tr>');
+                var tr=$('<tr style="text-align: left;"></tr>');
                 tr.data("data",param);
                 //判断parame的in类型
                 //query--text
@@ -331,9 +448,13 @@
                 var value=$('<td></td>');
 
                 var val=null;
+                var requiredStr = "必填";
+                if(!param.required){
+                    requiredStr = "非必填";
+                }
                 if(param["in"]=="body"){
                     tbody.attr("reqtype","body");
-                    val=$('<textarea class="form-control p-value" style="font-size: 16px;" rows="10" data-apiUrl="'+apiInfo.url+'" name="'+param.name+'" data-name="'+param.name+'" placeholder="'+DApiUI.getStringValue(param['description'])+'"></textarea>')
+                    val=$('<textarea class="form-control p-value" style="font-size: 16px;" rows="10" data-apiUrl="'+apiInfo.url+'" name="'+param.name+'" data-name="'+param.name+'" placeholder="'+requiredStr+'"></textarea>')
                     //判断是否有schma
                     if(param.hasOwnProperty("schema")){
                         var schema=param["schema"];
@@ -369,7 +490,7 @@
                     }
 
                 }else{
-                    val=$('<input class="form-control p-value" name="'+param.name+'" data-apiUrl="'+apiInfo.url+'" data-name="'+param.name+'" placeholder="'+DApiUI.getStringValue(param['description'])+'"/>');
+                    val=$('<input class="form-control p-value" name="'+param.name+'" data-apiUrl="'+apiInfo.url+'" data-name="'+param.name+'" placeholder="'+requiredStr+'"/>');
                     //判断是否有defaultvalue
                     if(param.hasOwnProperty("default")){
                         var defaultValue=param["default"];
@@ -412,7 +533,8 @@
                     })
 
                 }
-                tr.append(checkbox).append(key).append(value).append(oper);
+                var paramDescription=$('<td width="50%">'+DApiUI.getStringValue(param['description'])+'</td>');
+                tr.append(checkbox).append(key).append(value).append(paramDescription).append(oper);
                 tbody.append(tr);
             })
             table.append(tbody);
@@ -437,9 +559,7 @@
         div.append(divp);
         //创建reesponsebody
         var respcleanDiv=$('<div id="responsebody"></div>');
-
         div.append(respcleanDiv);
-
 
         DApiUI.getDoc().find("#tab2").find(".panel-body").html("")
         DApiUI.getDoc().find("#tab2").find(".panel-body").append(div);
@@ -450,7 +570,7 @@
         //发送事件
         headdiv1.find("#btnRequest").bind("click",function (e) {
             e.preventDefault();
-            respcleanDiv.html("")
+            respcleanDiv.html("");
             DApiUI.log("发送请求");
             //
             var params={};
@@ -613,6 +733,9 @@
                     }
                 })
             }else{
+                //.禁用"发送"按钮
+                $('#btnRequest').html("请求中");
+                $('#btnRequest').attr({"disabled":"disabled"});
                 $.ajax({
                     url:url,
                     headers:headerparams,
@@ -759,6 +882,11 @@
                         DApiUI.log("tab show...")
                         resptab.find("a:first").tab("show");
 
+                    },
+                    complete:function (event,xhr,options) {
+                        //.启用"发送"按钮
+                        $('#btnRequest').html("发送");
+                        $('#btnRequest').removeAttr("disabled");
                     }
                 })
             }
@@ -841,7 +969,7 @@
         if(typeof (apiInfo.parameters)!='undefined'&&apiInfo.parameters!=null){
             var ptd=$("<td></td>");
             var ptable=$('<table class="table table-bordered"></table>')
-            var phead=$('<thead><th>参数名称</th><th>说明</th><th>类型</th><th>in</th><th>是否必须</th></thead>');
+            var phead=$('<thead><th>参数名称</th><th>说明</th><th>数据类型</th><th>请求类型</th><th>是否必须</th></thead>');
             ptable.append(phead);
             var pbody=$('<tbody></tbody>');
             $.each(apiInfo.parameters,function (i, param) {
@@ -851,6 +979,9 @@
                 var ptype="string";
                 if(param.hasOwnProperty("type")){
                     ptype=param["type"];
+                    if(param.hasOwnProperty("items")){
+                        ptype = ptype + '['+param["items"]['type']+']';
+                    }
                 }else{
                     ///判断是有schma
                     if(param.hasOwnProperty("schema")){
@@ -912,13 +1043,18 @@
         tbody.append(responseConstruct)
 
         //响应参数 add by xiaoymin 2017-8-20 16:17:18
+        // var respParams=$('<tr><th class="active" style="text-align: right;">响应参数说明</th></tr>');
+        // var respPart=$('<td  style="text-align: left"></td>');
+        // respPart.append(DApiUI.createResponseDefinitionDetail(apiInfo));
+        // respParams.append(respPart);
+        // tbody.append(respParams);
 
-        var respParams=$('<tr><th class="active" style="text-align: right;">响应参数说明</th></tr>');
-        var respPart=$('<td  style="text-align: left"></td>');
-        respPart.append(DApiUI.createResponseDefinitionDetail(apiInfo));
-        respParams.append(respPart);
-
-        tbody.append(respParams);
+        //.响应测试说明(试) todowus
+        var respParamst = $('<tr><th class="active" style="text-align: right;">返回结构体说明(Beta)</th></tr>');
+        var tdllala = $('<td style="text-align: left;"></td>');
+        tdllala.append(DApiUI.createRespDetailNode(apiInfo));
+        respParamst.append(tdllala);
+        tbody.append(respParamst);
 
         //响应状态码
         var response=$('<tr><th class="active" style="text-align: right;">响应</th></tr>');
@@ -962,6 +1098,76 @@
 
     }
 
+    /**
+     *
+     * @param ref
+     * @param rowcontainer
+     * @param ceng {sum:sum}
+     */
+    DApiUI.extracted = function (ref, rowcontainer,ceng) {
+        // DApiUI.log(ref);
+        var regex = new RegExp("#/definitions/(.*)$", "ig");
+        if (regex.test(ref)) {
+            var refType = RegExp.$1;
+            var definitionTypes = DApiUI.getMenuConstructs().definitions;
+            for (var definitionType in definitionTypes) {
+                if (definitionType == refType) {
+                    var props = definitionTypes[refType]["properties"];
+                    for (var prop in props) {
+                        var pvalue = props[prop];
+                        var propRef = pvalue['$ref'];
+                        if(pvalue.type=="array"){
+                            DApiUI.log(prop);
+                        }
+                        if (propRef == undefined) {
+                            var paramName = DApiUI.filedFormatFun(prop);
+                            var paramType = DApiUI.toString(pvalue.type, "string");
+                            var paramDescription = DApiUI.toString(pvalue.description, "");
+                            var rowDiv = $('<div class="row non-margin-left"></div>');
+                            for (var cengI = 0; cengI < ceng.sum; cengI++) {
+                                rowDiv.append($('<div class="a-block"></div>'));
+                            }
+                            rowDiv.append($('<div class="row-full"><div class="param-cell">'+paramName+'</div><div class="resp-param-annotation"><i>' + paramType + '</i>' + paramDescription + '</div></div>'));
+                            rowcontainer.append(rowDiv);
+                            if (pvalue.items != undefined) {
+                                ceng.sum++
+                                DApiUI.extracted(pvalue.items.$ref,rowcontainer,ceng);
+                                ceng.sum--;
+                            }
+                        } else {
+                            var paramName = DApiUI.filedFormatFun(prop);
+                            var paramType = DApiUI.toString(pvalue.$ref.split("/")[2], "Object");
+                            var paramDescription = DApiUI.toString(pvalue.description, "");
+                            var rowDiv = $('<div class="row non-margin-left"></div>');
+                            for (var cengI = 0; cengI < ceng.sum; cengI++) {
+                                rowDiv.append($('<div class="a-block"></div>'));
+                            }
+                            rowDiv.append($('<div class="row-full"><div class="param-cell">'+paramName+'</div><div class="resp-param-annotation"><i>' + paramType + '</i>' + paramDescription + '</div></div>'));
+                            rowcontainer.append(rowDiv);
+                            //.递归
+                            ceng.sum++
+                            DApiUI.extracted(propRef,rowcontainer,ceng);
+                            ceng.sum--;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    DApiUI.createRespDetailNode = function (apiInfo) {
+        var rowcontainer = $('<div class="container" style="padding: 0;margin: 0;display: inline-table;width: 100%;"></div>');
+        var resp = apiInfo.responses;
+        if (!resp.hasOwnProperty("200")){
+            return rowcontainer;
+        }
+        var okResp = resp["200"];
+        var schema = okResp["schema"];
+        var ref = schema["$ref"];//"#/definitions/UserUserOut"
+        DApiUI.extracted(ref, rowcontainer,{sum:0});
+        return rowcontainer;
+    }
+
     /***
      * 响应参数详情
      * @param apiInfo
@@ -997,7 +1203,7 @@
                                     var regex1 = new RegExp("#/definitions/(.*)$", "ig");
                                     if(regex1.test((param_ref))){
                                         var ptype=RegExp.$1;
-                                        tr.append($("<td>"+prop+"</td>"))
+                                        tr.append($("<td>"+DApiUI.filedFormatFun(prop)+"</td>"))
                                         tr.append($("<td>"+ptype+"</td>"))
                                         tr.append($("<td></td>"))
                                         tbody.append(tr);
@@ -1008,7 +1214,7 @@
                                                 for(var prop1 in pp_props) {
                                                     var tr1=$("<tr></tr>")
                                                     var pvalue1 = pp_props[prop1];
-                                                    tr1.append($("<td style='text-align: right;'>" + prop1 + "</td>"));
+                                                    tr1.append($("<td style='text-align: right;'>" + DApiUI.filedFormatFun(prop1) + "</td>"));
                                                     tr1.append($("<td>"+DApiUI.getValue(pvalue1,"type","string",true)+"</td>"));
                                                     tr1.append($("<td>"+DApiUI.getValue(pvalue1,"description","",true)+"</td>"));
                                                     tbody.append(tr1);
@@ -1017,7 +1223,7 @@
                                         }
                                     }
                                 }else{
-                                    tr.append($("<td>"+prop+"</td>"))
+                                    tr.append($("<td>"+DApiUI.filedFormatFun(prop)+"</td>"))
                                     var type=DApiUI.toString(pvalue.type,"string");
                                     tr.append($("<td>"+type+"</td>"));
                                     tr.append($("<td>"+DApiUI.toString(pvalue.description,"")+"</td>"));
@@ -1033,7 +1239,6 @@
         }
         return div;
     }
-
 
     DApiUI.createResponseDefinition=function (apiInfo) {
         var resp=apiInfo.responses;
@@ -1061,6 +1266,9 @@
                     }
                     div.html("")
                     if (flag){
+                        var htmlValueStr = JSON.stringify(htmlValue);
+                        htmlValueStr = DApiUI.filedFormatFun(htmlValueStr);//驼峰转下划线
+                        htmlValue = eval('(' + htmlValueStr + ')');
                         div.JSONView(htmlValue);
                     }else{
                         div.html(refType);
