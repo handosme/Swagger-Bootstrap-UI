@@ -1,17 +1,20 @@
 /**
  * Created by xiaoym on 2017/4/17.
- * change list:
- * 1.支持接口锚点定位;
- * 2.json参数名驼峰转下划线格式;
- * 3.支持左右布局的宽度;
- * 4.支持传入接口分组group;
- * 5.支持返回结构体解析为表格方式呈现
+ * Changed by handosme on 2017/10/15
+ *  1.支持接口锚点定位;
+ *  2.json参数名驼峰转下划线格式;
+ *  3.支持左右布局的宽度;
+ *  4.支持传入接口分组group;
+ *  5.支持返回结构体解析为表格方式呈现;
+ *  6.添加搜索功能.
  */
 
 (function ($) {
     //初始化类
     var DApiUI={
         dragging:false,
+        apiData:{},
+        searchStatus:0,
         group:"default",            //接口分组
         filedFormat:"default"       //字段格式，现在支持驼峰、下划线
     };
@@ -35,12 +38,12 @@
             async:false,
             success:function (data) {
                 //var menu=JSON.parse(data)
-                var menu=data;
-                DApiUI.definitions(menu);
-                DApiUI.log(menu);
-                DApiUI.createDescription(menu);
-                DApiUI.initTreeMenu(menu);
-                DApiUI.eachPath(menu);
+                DApiUI.apiData = data;
+                DApiUI.definitions(DApiUI.apiData);
+                DApiUI.log(DApiUI.apiData);
+                DApiUI.createDescription(DApiUI.apiData);
+                DApiUI.initTreeMenu(DApiUI.apiData);
+                DApiUI.eachPath(DApiUI.apiData);
                 DApiUI.locationMenu();
             }
         })
@@ -1533,6 +1536,42 @@
 
     }
 
+
+    /**
+     * 搜索功能
+     */
+    $("#btnSearch").bind("click",function (e) {
+        var btn = $(this);
+        e.preventDefault();
+        var searchKeyWord = $('#inputSearch').val().toUpperCase();
+        if (searchKeyWord == '') {
+            return;
+        }
+        DApiUI.searchStatus++;
+        if (DApiUI.searchStatus%2==0){
+            //.重置操作
+            DApiUI.initTreeMenu(DApiUI.apiData);
+            DApiUI.locationMenu();
+            $('#inputSearch').val("")
+            btn.html("搜索");
+            return;
+        }
+        btn.html("重置");
+        var menuList = $('.menuLi');
+        var li=$('<li></li>');
+        var ul=$('<ul class="submenu" style="display: block;"></ul>');
+        menuList.each(function(){
+            var that = $(this);
+            var searchContent = that.attr("id") + that.html().replace(/<[^>]+>/g,"").toUpperCase();
+            if(searchContent.indexOf(searchKeyWord)!=-1){
+                console.log(searchContent);
+                ul.append(this);
+            }
+        });
+        li.append(ul);
+        DApiUI.getMenu().html("");
+        DApiUI.getMenu().append(li);
+    });
 
 
 

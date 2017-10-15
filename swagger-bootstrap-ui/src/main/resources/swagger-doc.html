@@ -20,7 +20,7 @@
             width: 20%;
             margin-top: 0px;
             position: fixed;
-            background: #337ab7;
+            background: #ccc;
             height: 100%;
             transition: all 0.2s;
         }
@@ -31,7 +31,7 @@
             width: 1rem;
             /*background: #1d2024;*/
             z-index: 3;
-            cursor: ew-resize;
+            cursor: col-resize;
         }
         .bycdao-main {
             margin-left: 20%;
@@ -39,7 +39,28 @@
            /* padding-left: 15px;*/
             padding-right: 15px;
             background: #f3f3f4;
-            transition: all 0.2s;
+            /*transition: all 0.2s;*/
+        }
+        .search-div{
+            display: flex;
+            width: 100%;
+            height: 3rem;
+        }
+        .search-input{
+            flex: 0 0 80%;
+        }
+        .search-btn{
+            flex: 0 0 20%;
+        }
+        .search-input input{
+            font-size: 1rem;
+            line-height: 100%;
+            width: 100%;
+            height:3rem;
+        }
+        .search-btn button{
+            width: 100%;
+            height: 3rem;
         }
 
         .tab-content {
@@ -116,6 +137,14 @@
 <body style="overflow: hidden;">
 <div class="bycdao-left js-bycdao-left" style="height: 100%;overflow-y: auto;">
     <div class="ul-wrapper">
+        <div class="search-div">
+            <div class="search-input">
+                <input type="text" id="inputSearch" size="30" placeholder="Type to search">
+            </div>
+            <div class="search-btn">
+                <button class="btn btn-default btn-info" id="btnSearch" type="button">搜索</button>
+            </div>
+        </div>
         <ul class="nav nav-list" id="menu">
             <li >
                 <a href="javascript:void(0)">

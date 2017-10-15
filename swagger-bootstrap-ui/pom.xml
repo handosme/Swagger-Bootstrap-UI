@@ -39,9 +39,10 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git@git.oschina.net:xiaoym/swagger-bootstrap-ui.git</connection>
-        <developerConnection>scm:git@git.oschina.net:xiaoym/swagger-bootstrap-ui.git</developerConnection>
-        <url>git@git.oschina.net:xiaoym/swagger-bootstrap-ui.git</url>
+        <connection>scm:git:git://github.com/handosme/Swagger-Bootstrap-UI.git</connection>
+        <developerConnection>scm:git:git@github.com:handosme/Swagger-Bootstrap-UI.git</developerConnection>
+        <url>https://github.com/handosme/Swagger-Bootstrap-UI.git</url>
+        <tag>HEAD</tag>
     </scm>
     <distributionManagement>
         <snapshotRepository>
