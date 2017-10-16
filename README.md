@@ -1,7 +1,4 @@
-# Swagger-Bootstrap-UI
-## 接口文档这件事，说难，其实也简单。
-
-
+# Swagger-Bootstrap-UI 接口文档这件事，说难，其实也简单。
 
 ## 简介
 
