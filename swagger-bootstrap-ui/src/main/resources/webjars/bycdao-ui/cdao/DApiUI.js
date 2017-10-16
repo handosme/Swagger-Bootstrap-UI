@@ -1489,7 +1489,7 @@
 
     DApiUI.log=function (msg) {
         if (window.console){
-            console.log(msg);
+            // console.log(msg);
         }
     }
     DApiUI.init();
@@ -1543,20 +1543,21 @@
     $("#btnSearch").bind("click",function (e) {
         var btn = $(this);
         e.preventDefault();
+        DApiUI.initTreeMenu(DApiUI.apiData);
         var searchKeyWord = $('#inputSearch').val().toUpperCase();
         if (searchKeyWord == '') {
-            return;
-        }
-        DApiUI.searchStatus++;
-        if (DApiUI.searchStatus%2==0){
-            //.重置操作
-            DApiUI.initTreeMenu(DApiUI.apiData);
             DApiUI.locationMenu();
-            $('#inputSearch').val("")
-            btn.html("搜索");
             return;
         }
-        btn.html("重置");
+        // DApiUI.searchStatus++;
+        // if (DApiUI.searchStatus%2==0){
+        //     //.重置操作
+        //     DApiUI.locationMenu();
+        //     $('#inputSearch').val("")
+        //     btn.html("搜索");
+        //     return;
+        // }
+        // btn.html("重置");
         var menuList = $('.menuLi');
         var li=$('<li></li>');
         var ul=$('<ul class="submenu" style="display: block;"></ul>');
@@ -1564,7 +1565,6 @@
             var that = $(this);
             var searchContent = that.attr("id") + that.html().replace(/<[^>]+>/g,"").toUpperCase();
             if(searchContent.indexOf(searchKeyWord)!=-1){
-                console.log(searchContent);
                 ul.append(this);
             }
         });
