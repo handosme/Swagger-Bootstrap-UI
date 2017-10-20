@@ -1,5 +1,8 @@
 /**
  * Created by xiaoym on 2017/4/17.
+ *
+ * 接口文档这件事，说难，其实也简单。
+ *
  * Changed by handosme on 2017/10/15
  *  1.支持接口锚点定位;
  *  2.json参数名驼峰转下划线格式;
@@ -1540,11 +1543,10 @@
     /**
      * 搜索功能
      */
-    $("#btnSearch").bind("click",function (e) {
-        var btn = $(this);
+    DApiUI.searchApi = function (e) {
         e.preventDefault();
         DApiUI.initTreeMenu(DApiUI.apiData);
-        var searchKeyWord = $('#inputSearch').val().toUpperCase();
+        var searchKeyWord = $('#inputSearch').val().trim().toUpperCase();
         if (searchKeyWord == '') {
             DApiUI.locationMenu();
             return;
@@ -1571,6 +1573,15 @@
         li.append(ul);
         DApiUI.getMenu().html("");
         DApiUI.getMenu().append(li);
+    }
+
+
+    $("#btnSearch").bind("click",DApiUI.searchApi);
+
+    $('#inputSearch').bind('keydown',function(event){
+        if(event.keyCode == "13") {
+            DApiUI.searchApi(event);
+        }
     });
 
 
