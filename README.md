@@ -108,9 +108,9 @@ Swagger-UI默认效果图如下：
 
 ```java
 <dependency>
-  <groupId>com.github.xiaoymin</groupId>
-  <artifactId>swagger-bootstrap-ui</artifactId>
-  <version>1.6</version>
+   <groupId>org.ihansen.mbp</groupId>
+   <artifactId>swagger-bootstrap-ui</artifactId>
+   <version>1.6.2</version>
 </dependency>
 ```
 
@@ -181,7 +181,7 @@ public class SwaggerConfiguration {
 
 
 
-* `swagger-bootstrap-ui`默认访问地址是：`http://${host}:${port}/doc.html`
+* `swagger-bootstrap-ui`默认访问地址是：`http://${host}:${port}/swagger-doc.html` 默认groupName是`default`，需要指定groupName访问时，地址是：`http://${host}:${port}/swagger-doc.html?group=${group_name}`
 
 
 
