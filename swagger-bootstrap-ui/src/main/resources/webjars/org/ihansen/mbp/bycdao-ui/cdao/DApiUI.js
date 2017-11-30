@@ -10,6 +10,10 @@
  *  4.支持传入接口分组group;
  *  5.支持返回结构体解析为表格方式呈现;
  *  6.添加搜索功能.
+ *
+ *
+ *  todowus:
+ *  .支持修改uri;
  */
 
 (function ($) {
@@ -1111,7 +1115,11 @@
      * @param ceng {sum:sum}
      */
     DApiUI.extracted = function (ref, rowcontainer,ceng) {
-        // DApiUI.log(ref);
+        DApiUI.log(ref);
+        //todowus 防止参数结构嵌套构成死循环
+        if(ceng>50){
+            return;
+        }
         var regex = new RegExp("#/definitions/(.*)$", "ig");
         if (regex.test(ref)) {
             var refType = RegExp.$1;
