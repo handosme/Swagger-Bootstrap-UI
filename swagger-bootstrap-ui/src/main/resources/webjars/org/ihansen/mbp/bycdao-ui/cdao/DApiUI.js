@@ -12,8 +12,9 @@
  *  6.添加搜索功能.
  *
  *
- *  todowus:
+ *  todo@wus 2017/12/14
  *  .支持修改uri;
+ *  .是否必填参数问题
  */
 
 (function ($) {
@@ -64,7 +65,7 @@
     }
 
     /**
-     * todowus:返回节点解析
+     * todo@wus 2017/12/14 返回节点解析
      */
     $(".js-bycdao-dragging").bind('mousedown',function(){
             DApiUI.dragging   = true;
@@ -100,9 +101,8 @@
         if(anchor=="" || anchor==undefined){
             return;
         }
-        anchor = anchor.replace("/","");
-        DApiUI.log(anchor);
-        //.todowus 实现方式需要优化
+        anchor = DApiUI.escapeJquery(anchor.replace("#/","#"));
+        //.todo@wus 2017/12/14  实现方式需要优化
         setTimeout(function () {
             $(anchor).parent().siblings('a').click();
             $(anchor).click();
@@ -110,6 +110,28 @@
             $('.js-bycdao-left').animate({scrollTop: topOffset}, 300);
         },1000);
     };
+
+
+    DApiUI.escapeJquery = function (srcString) {
+        // 转义之后的结果
+        var escapseResult = srcString;
+        // javascript正则表达式中的特殊字符
+        var jsSpecialChars = ["\\", "/", "^", "$", "*", "?", ".", "+", "(", ")", "[",
+            "]", "|", "{", "}"];
+        // jquery中的特殊字符,不是正则表达式中的特殊字符
+        var jquerySpecialChars = ["~", "`", "@", "%", "&", "=", "'", "\"",
+            ":", ";", "<", ">", ",", "/"];
+        for (var i = 0; i < jsSpecialChars.length; i++) {
+            escapseResult = escapseResult.replace(new RegExp("\\"
+                + jsSpecialChars[i], "g"), "\\"
+                + jsSpecialChars[i]);
+        }
+        for (var i = 0; i < jquerySpecialChars.length; i++) {
+            escapseResult = escapseResult.replace(new RegExp(jquerySpecialChars[i],
+                "g"), "\\" + jquerySpecialChars[i]);
+        }
+        return escapseResult;
+    }
 
 
 
@@ -257,10 +279,8 @@
                 //循环树
                 var ul=$('<ul class="submenu"></ul>')
                 $.each(tagInfo.childrens,function (i, children) {
-                    var childrenLi=$('<li class="menuLi" id="'+children.tag+'_'+children.operationId+'"><div class="mhed"><div>'+children.methodType.toUpperCase()+'-<code>'+children.url+'</code></div><div>'+children.summary+'</div></div></li>');
-                    //console.log(children)
-                    //var childrenA=$('<a href="javascript:void(0)"><i class="icon-double-angle-right"></i><div  ><h5><span class="method">['+children.methodType+']</span></h5></div>'+children.summary+'('+children.url+')</a>');
-                    //childrenLi.append(childrenA);
+                    var urlEncode = children.url.replace(/\//g, '%2F');
+                    var childrenLi=$('<li class="menuLi" id="'+children.methodType+'_'+urlEncode+'"><div class="mhed"><div>'+children.methodType.toUpperCase()+'-<code>'+children.url+'</code></div><div>'+children.summary+'</div></div></li>');
                     childrenLi.data("data",children);
                     ul.append(childrenLi);
                 })
@@ -376,7 +396,7 @@
             DApiUI.createApiInfoTable(data);
             DApiUI.createDebugTab(data);
             if(that.attr('id')!=null && that.attr('id')!=undefined){
-                location.hash="/"+that.attr('id');
+                location.hash= "/"+that.attr('id');
             }
         })
     }
@@ -1045,6 +1065,13 @@
             args.append($('<td  style="text-align: left">暂无</td>'));
         }
         tbody.append(args);
+        //.返参列表
+        var respParamst = $('<tr><th class="active" style="text-align: right;">返参列表</th></tr>');
+        var tdllala = $('<td style="text-align: left;"></td>');
+        tdllala.append(DApiUI.createRespDetailNode(apiInfo));
+        respParamst.append(tdllala);
+        tbody.append(respParamst);
+
         //响应数据结构
         var responseConstruct=$('<tr><th class="active" style="text-align: right;">响应Model</th></tr>');
         var responseConstructtd=$('<td  style="text-align: left"></td>')
@@ -1052,22 +1079,8 @@
         responseConstruct.append(responseConstructtd);
         tbody.append(responseConstruct)
 
-        //响应参数 add by xiaoymin 2017-8-20 16:17:18
-        // var respParams=$('<tr><th class="active" style="text-align: right;">响应参数说明</th></tr>');
-        // var respPart=$('<td  style="text-align: left"></td>');
-        // respPart.append(DApiUI.createResponseDefinitionDetail(apiInfo));
-        // respParams.append(respPart);
-        // tbody.append(respParams);
-
-        //.响应测试说明(试) todowus
-        var respParamst = $('<tr><th class="active" style="text-align: right;">返回结构体说明(Beta)</th></tr>');
-        var tdllala = $('<td style="text-align: left;"></td>');
-        tdllala.append(DApiUI.createRespDetailNode(apiInfo));
-        respParamst.append(tdllala);
-        tbody.append(respParamst);
-
         //响应状态码
-        var response=$('<tr><th class="active" style="text-align: right;">响应</th></tr>');
+        var response=$('<tr><th class="active" style="text-align: right;">响应码</th></tr>');
         if(typeof (apiInfo.responses)!='undefined'&&apiInfo.responses!=null){
             var resp=apiInfo.responses;
             var ptd=$("<td></td>");
@@ -1114,12 +1127,12 @@
      * @param rowcontainer
      * @param ceng {sum:sum}
      */
-    DApiUI.extracted = function (ref, rowcontainer,ceng) {
+    DApiUI.extracted = function (ref, rowcontainer,ceng,analysisedTypeArray) {
         DApiUI.log(ref);
-        //todowus 防止参数结构嵌套构成死循环
-        if(ceng>50){
-            return;
-        }
+        //todo@wus 2017/12/14  防止参数结构嵌套构成死循环 最多不能超过1000行,层次不能超过10
+        // if ($(rowcontainer).children(".row").length > 1000 || ceng.sum > 10) {
+        //     return;
+        // }
         var regex = new RegExp("#/definitions/(.*)$", "ig");
         if (regex.test(ref)) {
             var refType = RegExp.$1;
@@ -1130,12 +1143,16 @@
                     for (var prop in props) {
                         var pvalue = props[prop];
                         var propRef = pvalue['$ref'];
-                        if(pvalue.type=="array"){
-                            DApiUI.log(prop);
-                        }
                         if (propRef == undefined) {
                             var paramName = DApiUI.filedFormatFun(prop);
                             var paramType = DApiUI.toString(pvalue.type, "string");
+                            if(paramType=="array"){
+                                if(pvalue.items.$ref==undefined){
+                                    paramType += "["+pvalue.items+"]";
+                                } else {
+                                    paramType += "["+pvalue.items.$ref.replace("#/definitions/","")+"]";
+                                }
+                            }
                             var paramDescription = DApiUI.toString(pvalue.description, "");
                             var rowDiv = $('<div class="row non-margin-left"></div>');
                             for (var cengI = 0; cengI < ceng.sum; cengI++) {
@@ -1143,9 +1160,13 @@
                             }
                             rowDiv.append($('<div class="row-full"><div class="param-cell">'+paramName+'</div><div class="resp-param-annotation"><i>' + paramType + '</i>' + paramDescription + '</div></div>'));
                             rowcontainer.append(rowDiv);
+                            if ($.inArray(paramType, analysisedTypeArray) >= 0) {
+                                continue;
+                            }
+                            analysisedTypeArray.push(paramType);
                             if (pvalue.items != undefined) {
                                 ceng.sum++
-                                DApiUI.extracted(pvalue.items.$ref,rowcontainer,ceng);
+                                DApiUI.extracted(pvalue.items.$ref, rowcontainer, ceng, analysisedTypeArray);
                                 ceng.sum--;
                             }
                         } else {
@@ -1158,9 +1179,13 @@
                             }
                             rowDiv.append($('<div class="row-full"><div class="param-cell">'+paramName+'</div><div class="resp-param-annotation"><i>' + paramType + '</i>' + paramDescription + '</div></div>'));
                             rowcontainer.append(rowDiv);
+                            if ($.inArray(paramType, analysisedTypeArray) >= 0) {
+                                continue;
+                            }
+                            analysisedTypeArray.push(paramType);
                             //.递归
                             ceng.sum++
-                            DApiUI.extracted(propRef,rowcontainer,ceng);
+                            DApiUI.extracted(propRef, rowcontainer, ceng, analysisedTypeArray);
                             ceng.sum--;
                         }
                     }
@@ -1178,7 +1203,7 @@
         var okResp = resp["200"];
         var schema = okResp["schema"];
         var ref = schema["$ref"];//"#/definitions/UserUserOut"
-        DApiUI.extracted(ref, rowcontainer,{sum:0});
+        DApiUI.extracted(ref, rowcontainer,{sum:0},[]);
         return rowcontainer;
     }
 
