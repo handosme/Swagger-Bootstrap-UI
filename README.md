@@ -1,7 +1,7 @@
 # Swagger-Bootstrap-UI 
 
 ## 简介  
-`Swagger-Bootstrap-UI`是`Swagger`的前端UI实现,可用来替换`Swagger`默认的UI,增加了诸多实用特性,提高工作开发效率。[api.ihansen.org](https://api.ihansen.org/swagger-doc.html)   
+`Swagger-Bootstrap-UI`是`Swagger`的前端UI实现,可用来替换`Swagger`默认的UI,增加了诸多实用特性,提高工作开发效率。    
 `Swagger-Bootstrap-UI` 只是`Swagger`的UI实现,并不是替换`Swagger`功能,所以后端模块依然是依赖`Swagger`的,需要配合`Swagger`的注解达到效果。  
 在`Swagger-Bootstrap-UI`提供如下特性：  
 - 锚点定位到制定接口;
