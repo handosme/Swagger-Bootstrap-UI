@@ -10,7 +10,7 @@
 - 自定义json参数名驼峰或下划线格式。
 
 ## 在线演示    
-[api.ihansen.org](https://api.ihansen.org/swagger-doc.html)  
+[api.ihansen.org](https://api.ihansen.org/swagger-doc.html#/get_%2Fsample%2Fcomp)  
 
 ## 使用说明  
 ### 1.首先需要引入swagger的配置包信息,如下：
