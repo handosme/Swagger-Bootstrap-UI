@@ -1,20 +1,13 @@
 # Swagger-Bootstrap-UI 
 
 ## 简介  
-`Swagger-Bootstrap-UI`是`Swagger`的前端UI实现,目的是替换`Swagger`默认的UI实现`Swagger-UI`,使文档更友好一点儿....  
-`Swagger-Bootstrap-UI` 只是`Swagger`的UI实现,并不是替换`Swagger`功能,所以后端模块依然是依赖`Swagger`的,需要配合`Swagger`的注解达到效果。
+`Swagger-Bootstrap-UI`是`Swagger`的前端UI实现,可用来替换`Swagger`默认的UI,增加了诸多实用特性,提高工作开发效率。[api.ihansen.org](https://api.ihansen.org/swagger-doc.html)   
+`Swagger-Bootstrap-UI` 只是`Swagger`的UI实现,并不是替换`Swagger`功能,所以后端模块依然是依赖`Swagger`的,需要配合`Swagger`的注解达到效果。  
 在`Swagger-Bootstrap-UI`提供如下特性：  
 - 锚点定位到制定接口;
 - 关键字搜索接口;
 - 多层级返参类型缩进表格展示;
 - 自定义json参数名驼峰或下划线格式。
-
-
-## 功能  
-* 接口文档说明,效果图如下：  
-![](https://static-ali.ihansen.org/img/swagger-doc/ec8a86ad-8038-4ee2-8264-5c0491fc285c.png)  
-* 在线调试功能,效果图如下:  
-![](https://static-ali.ihansen.org/img/swagger-doc/170a4932-ee45-4ed7-9583-5239eb76aeff.png)   
 
 ## 在线演示    
 [api.ihansen.org](https://api.ihansen.org/swagger-doc.html)  
@@ -44,4 +37,11 @@
    <version>1.7</version>
 </dependency>
 ```
-### 3.其他配置和原`Swagger`保持一致即可。
+### 3.其他配置和原`Swagger`保持一致即可。  
+参考[使用swagger作为restful api的doc文档生成](https://www.cnblogs.com/woshimrf/p/5863318.htm)  
+
+## 界面效果
+* 接口文档说明,效果图如下：  
+![](https://static-ali.ihansen.org/img/swagger-doc/ec8a86ad-8038-4ee2-8264-5c0491fc285c.png)  
+* 在线调试功能,效果图如下:  
+![](https://static-ali.ihansen.org/img/swagger-doc/170a4932-ee45-4ed7-9583-5239eb76aeff.png)   
